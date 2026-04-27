@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TradeVault — Professional Trading Journal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;900&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg0: #05090f;
+      --bg1: #0a1018;
+      --bg2: #0f1922;
+      --bg3: #152030;
+      --border: #1c2b3a;
+      --border2: #253a4d;
+      --gold: #e8a020;
+      --gold2: #f5bb4a;
+      --gold-dim: rgba(232,160,32,0.12);
+      --green: #00c896;
+      --green-dim: rgba(0,200,150,0.1);
+      --red: #f04060;
+      --red-dim: rgba(240,64,96,0.1);
+      --blue: #4488ff;
+      --blue-dim: rgba(68,136,255,0.1);
+      --txt1: #dde8f0;
+      --txt2: #7a95a8;
+      --txt3: #3d5060;
+      --fd: 'Barlow Condensed', sans-serif;
+      --fm: 'DM Mono', monospace;
+      --fu: 'Outfit', sans-serif;
+      --r: 8px; --rl: 12px;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{font-family:var(--fu);background:var(--bg0);color:var(--txt1);min-height:100vh;overflow-x:hidden}
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:var(--bg1)}
+    ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+    /* GRID BG */
+    body::before{
+      content:'';position:fixed;inset:0;
+      background-image:linear-gradient(rgba(28,43,58,0.4) 1px,transparent 1px),linear-gradient(90deg,rgba(28,43,58,0.4) 1px,transparent 1px);
+      background-size:48px 48px;pointer-events:none;z-index:0
+    }
+
+    /* SCAN LINE EFFECT */
+    body::after{
+      content:'';position:fixed;inset:0;
+      background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+      pointer-events:none;z-index:0
+    }
+
+    .app{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh}
+
+    /* ── HEADER ── */
+    header{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 28px;height:58px;
+      background:rgba(5,9,15,0.96);
+      border-bottom:1px solid var(--border);
+      backdrop-filter:blur(16px);
+      position:sticky;top:0;z-index:200
+    }
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo-mark{
+      width:34px;height:34px;border-radius:7px;
+      background:linear-gradient(135deg,var(--gold),var(--gold2));
+      display:flex;align-items:center;justify-content:center;
+      font-family:var(--fd);font-size:15px;font-weight:900;color:#000;letter-spacing:-1px
+    }
+    .logo-name{font-family:var(--fd);font-size:21px;font-weight:700;letter-spacing:2px;color:var(--txt1)}
+    .logo-name em{color:var(--gold);font-style:normal}
+    .hdr-r{display:flex;align-items:center;gap:14px}
+    .hdr-clk{font-family:var(--fm);font-size:11px;color:var(--txt3);display:flex;flex-direction:column;align-items:flex-end;line-height:1.4}
+    .hdr-clk span{color:var(--txt2)}
+
+    /* ── NAV ── */
+    nav{
+      display:flex;background:var(--bg1);
+      border-bottom:1px solid var(--border);
+      padding:0 28px;gap:0;overflow-x:auto;
+    }
+    .nb{
+      display:flex;align-items:center;gap:7px;
+      padding:0 20px;height:46px;
+      font-family:var(--fu);font-size:13px;font-weight:500;
+      color:var(--txt3);background:none;border:none;cursor:pointer;
+      border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap
+    }
+    .nb svg{width:14px;height:14px;opacity:.7}
+    .nb:hover{color:var(--txt2)}
+    .nb.active{color:var(--gold);border-bottom-color:var(--gold)}
+    .nb.active svg{opacity:1}
+
+    /* ── MAIN ── */
+    main{flex:1;padding:24px 28px;max-width:1500px;margin:0 auto;width:100%}
+    .sec{display:none}
+    .sec.active{display:block}
+
+    /* PAGE HEADER */
+    .ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;gap:12px;flex-wrap:wrap}
+    .ph-l{}
+    .ph-t{font-family:var(--fd);font-size:30px;font-weight:700;letter-spacing:2px;text-transform:uppercase;line-height:1}
+    .ph-s{font-size:12px;color:var(--txt3);margin-top:4px;letter-spacing:.5px}
+
+    /* ── CARDS ── */
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:20px}
+    .ct{font-family:var(--fd);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--txt3);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .ct-dot{width:5px;height:5px;border-radius:50%;background:var(--gold)}
+
+    /* ── STATS GRID ── */
+    .sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin-bottom:20px}
+    .sc{
+      background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);
+      padding:18px;position:relative;overflow:hidden;transition:border-color .2s,transform .15s
+    }
+    .sc:hover{border-color:var(--border2);transform:translateY(-1px)}
+    .sc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gold);opacity:.6}
+    .sc.g::after{background:var(--green)}
+    .sc.r::after{background:var(--red)}
+    .sc.b::after{background:var(--blue)}
+    .sl{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);margin-bottom:8px}
+    .sv{font-family:var(--fm);font-size:24px;font-weight:500;color:var(--txt1);line-height:1}
+    .sv.p{color:var(--green)}
+    .sv.n{color:var(--red)}
+    .sv.a{color:var(--gold)}
+    .ss{font-size:11px;color:var(--txt3);margin-top:5px}
+
+    /* PROGRESS BAR */
+    .pb{background:var(--border);border-radius:3px;height:5px;overflow:hidden;margin-top:6px}
+    .pf{height:100%;border-radius:3px;background:var(--gold);transition:width .5s ease}
+    .pf.g{background:var(--green)}
+    .pf.r{background:var(--red)}
+
+    /* DASH GRID */
+    .dg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .dg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+
+    /* ── BUTTONS ── */
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 17px;border-radius:var(--r);font-family:var(--fu);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;border:none;line-height:1}
+    .btn svg{width:14px;height:14px}
+    .btn-p{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;font-weight:600}
+    .btn-p:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 16px rgba(232,160,32,0.3)}
+    .btn-o{background:transparent;border:1px solid var(--border2);color:var(--txt2)}
+    .btn-o:hover{border-color:var(--gold);color:var(--gold)}
+    .btn-d{background:var(--red-dim);border:1px solid rgba(240,64,96,.3);color:var(--red)}
+    .btn-d:hover{background:rgba(240,64,96,.2)}
+    .btn-sm{padding:5px 10px;font-size:11px;gap:5px}
+
+    /* ── TABLE ── */
+    .tw{overflow-x:auto;border-radius:var(--rl);border:1px solid var(--border)}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    thead{background:var(--bg1)}
+    th{padding:11px 12px;text-align:left;font-family:var(--fd);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);white-space:nowrap;border-bottom:1px solid var(--border)}
+    td{padding:11px 12px;border-bottom:1px solid var(--border);font-family:var(--fm);font-size:11.5px;color:var(--txt2);white-space:nowrap;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tbody tr{transition:background .12s}
+    tbody tr:hover{background:rgba(21,32,48,.6)}
+    .pos{color:var(--green)}
+    .neg{color:var(--red)}
+
+    /* BADGES */
+    .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase}
+    .bw{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,200,150,.2)}
+    .bl{background:var(--red-dim);color:var(--red);border:1px solid rgba(240,64,96,.2)}
+    .bbe{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(68,136,255,.2)}
+    .bbuy{background:var(--green-dim);color:var(--green)}
+    .bsel{background:var(--red-dim);color:var(--red)}
+    .bpair{background:rgba(232,160,32,.1);color:var(--gold);border:1px solid rgba(232,160,32,.2);font-family:var(--fm)}
+
+    /* ── MODAL ── */
+    .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:300;align-items:center;justify-content:center;padding:20px}
+    .mo.show{display:flex}
+    .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);padding:28px;width:100%;max-width:660px;max-height:92vh;overflow-y:auto;animation:mIn .2s ease}
+    @keyframes mIn{from{opacity:0;transform:translateY(-12px) scale(.97)}to{opacity:1;transform:none}}
+    .mt{font-family:var(--fd);font-size:24px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between}
+    .mx{background:none;border:none;color:var(--txt3);cursor:pointer;padding:4px;display:flex;align-items:center;transition:color .2s}
+    .mx:hover{color:var(--txt1)}
+
+    /* ── FORM ── */
+    .fg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .fgi{display:flex;flex-direction:column;gap:5px}
+    .fgi.full{grid-column:1/-1}
+    label{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--txt3)}
+    input,select,textarea{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:9px 11px;font-family:var(--fm);font-size:12px;color:var(--txt1);transition:border-color .2s;width:100%}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);background:var(--bg2)}
+    select option{background:var(--bg2)}
+    textarea{resize:vertical;min-height:70px;font-family:var(--fu);font-size:13px}
+    .fa{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;padding-top:16px;border-top:1px solid var(--border)}
+
+    /* ── CALCULATOR ── */
+    .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .cr{background:var(--gold-dim);border:1px solid rgba(232,160,32,.2);border-radius:var(--r);padding:18px;text-align:center}
+    .crl{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+    .crv{font-family:var(--fm);font-size:32px;font-weight:500;color:var(--gold)}
+
+    /* CHART */
+    .chart-wrap{position:relative;height:240px}
+
+    /* FILTERS */
+    .filters{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+    .fi{padding:8px 11px;flex:1;min-width:130px}
+
+    /* MARKET GRID */
+    .mg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+    .widget-box{border-radius:var(--rl);overflow:hidden;border:1px solid var(--border);background:var(--bg1)}
+    .widget-box iframe{width:100%;border:none;display:block}
+
+    /* GEO */
+    .geo-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+    .geo-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:var(--r);margin-bottom:8px;gap:10px}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:22px;right:22px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:11px 18px;font-size:13px;z-index:999;animation:tIn .25s ease;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+    .toast.ok{border-color:rgba(0,200,150,.4)}
+    .toast.err{border-color:rgba(240,64,96,.4)}
+    @keyframes tIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+    /* EMPTY */
+    .empty{text-align:center;padding:56px 20px;color:var(--txt3)}
+    .empty .ei{font-size:36px;margin-bottom:12px;opacity:.5}
+    .empty p{font-size:13px;margin-top:6px;color:var(--txt3)}
+
+    /* SETUP PROMPT */
+    .setup-prompt{background:linear-gradient(135deg,rgba(232,160,32,.08),rgba(232,160,32,.04));border:1px solid rgba(232,160,32,.25);border-radius:var(--rl);padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+    .setup-prompt p{color:var(--gold);font-size:13px}
+
+    /* EQUITY GLOW */
+    .eq-positive{filter:drop-shadow(0 0 8px rgba(0,200,150,.3))}
+    .eq-negative{filter:drop-shadow(0 0 8px rgba(240,64,96,.3))}
+
+    @media(max-width:900px){
+      .dg,.dg3,.calc-grid,.mg,.fg{grid-template-columns:1fr}
+      .sg{grid-template-columns:1fr 1fr}
+      main{padding:16px}
+      header{padding:0 16px}
+      nav{padding:0 12px}
+    }
+    @media(max-width:480px){
+      .sg{grid-template-columns:1fr}
+      .ph{flex-direction:column}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ═══ HEADER ═══ -->
+  <header>
+    <div class="logo">
+      <div class="logo-mark">TV</div>
+      <div class="logo-name">TRADE<em>VAULT</em></div>
+    </div>
+    <div class="hdr-r">
+      <div class="hdr-clk">
+        <span id="clk-local">—</span>
+        <span id="clk-utc">UTC —</span>
+      </div>
+      <button class="btn btn-o btn-sm" onclick="openSetup()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Account Setup
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══ NAV ═══ -->
+  <nav>
+    <button class="nb active" onclick="goTab('dashboard',this)">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="nb" onclick="goTab('journal',this)">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Trade Journal
+    </button>
+    <button class="nb" onclick="goTab('calculator',this)">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="14" y1="18" x2="16" y2="18"/></svg>
+      Pip Calculator
+    </button>
+    <button class="nb" onclick="goTab('market',this)">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Market Intel
+    </button>
+    <button class="nb" onclick="goTab('analytics',this)">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </button>
+  </nav>
+
+  <!-- ═══ MAIN ═══ -->
+  <main>
+
+    <!-- ══ DASHBOARD ══ -->
+    <section class="sec active" id="dashboard">
+      <div class="ph">
+        <div class="ph-l">
+          <div class="ph-t">Dashboard</div>
+          <div class="ph-s" id="acc-subtitle">Loading account…</div>
+        </div>
+        <button class="btn btn-p" onclick="openAddTrade()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Trade
+        </button>
+      </div>
+
+      <div id="setup-prompt" class="setup-prompt" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e8a020" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p>⚡ Setup your account first — click <strong>Account Setup</strong> (top right) to configure your initial capital, risk limits & profit targets.</p>
+      </div>
+
+      <div class="sg" id="stats-grid"></div>
+
+      <div class="dg" style="margin-bottom:14px">
+        <div class="card">
+          <div class="ct"><span class="ct-dot"></span>Equity Curve</div>
+          <div class="chart-wrap"><canvas id="eqChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ct"><span class="ct-dot"></span>Win / Loss Distribution</div>
+          <div class="chart-wrap"><canvas id="wlChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="dg">
+        <div class="card">
+          <div class="ct"><span class="ct-dot"></span>Best & Worst Trades</div>
+          <div id="best-worst"></div>
+        </div>
+        <div class="card">
+          <div class="ct"><span class="ct-dot"></span>Performance by Pair</div>
+          <div id="pair-perf"></div>
+        </div>
+      </div>
+
+      <!-- Recent Trades -->
+      <div class="card" style="margin-top:14px">
+        <div class="ct"><span class="ct-dot"></span>Recent Trades</div>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Date</th><th>Pair</th><th>Dir</th><th>Result</th><th>P/L ($)</th><th>RR</th><th>Strategy</th></tr></thead>
+            <tbody id="recent-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ JOURNAL ══ -->
+    <section class="sec" id="journal">
+      <div class="ph">
+        <div class="ph-l">
+          <div class="ph-t">Trade Journal</div>
+          <div class="ph-s" id="journal-count">0 trades recorded</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-o btn-sm" onclick="exportCSV()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+          <button class="btn btn-p" onclick="openAddTrade()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Trade
+          </button>
+        </div>
+      </div>
+
+      <div class="filters">
+        <input type="text" class="fi" id="f-search" placeholder="🔍  Search pair, notes, strategy…" oninput="renderJournal()">
+        <select id="f-result" onchange="renderJournal()" style="width:130px">
+          <option value="">All Results</option>
+          <option value="Win">Win ✅</option>
+          <option value="Loss">Loss ❌</option>
+          <option value="Break Even">Break Even ➖</option>
+        </select>
+        <select id="f-pair" onchange="renderJournal()" style="width:140px"><option value="">All Pairs</option></select>
+        <select id="f-dir" onchange="renderJournal()" style="width:120px">
+          <option value="">All Directions</option>
+          <option value="Buy">Buy</option>
+          <option value="Sell">Sell</option>
+        </select>
+        <input type="date" id="f-from" onchange="renderJournal()" style="width:148px">
+        <input type="date" id="f-to" onchange="renderJournal()" style="width:148px">
+        <button class="btn btn-o btn-sm" onclick="clearFilters()">Clear</button>
+      </div>
+
+      <div class="tw">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Date / Time</th><th>Pair</th><th>Dir</th>
+              <th>Entry</th><th>SL</th><th>TP</th>
+              <th>Lot</th><th>RR</th><th>Session</th>
+              <th>Result</th><th>P/L ($)</th><th>Balance</th><th>Growth%</th>
+              <th>Strategy</th><th>Emotion</th><th>Notes</th><th>⚙</th>
+            </tr>
+          </thead>
+          <tbody id="j-tbody"></tbody>
+        </table>
+      </div>
+      <div id="j-empty" class="empty" style="display:none">
+        <div class="ei">📋</div>
+        <strong style="color:var(--txt2)">No trades found</strong>
+        <p>Add your first trade to start tracking your journey</p>
+      </div>
+    </section>
+
+    <!-- ══ CALCULATOR ══ -->
+    <section class="sec" id="calculator">
+      <div class="ph">
+        <div class="ph-l">
+          <div class="ph-t">Pip Calculator</div>
+          <div class="ph-s">Calculate position size, pip value & risk-reward</div>
+        </div>
+      </div>
+      <div class="calc-grid">
+        <!-- LEFT -->
+        <div>
+          <div class="card" style="margin-bottom:14px">
+            <div class="ct"><span class="ct-dot"></span>Pip Value Calculator</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="fgi"><label>Currency Pair</label>
+                <select id="cp-pair" onchange="calcAll()">
+                  <option>EURUSD</option><option>GBPUSD</option><option>USDJPY</option>
+                  <option>AUDUSD</option><option>NZDUSD</option><option>USDCAD</option>
+                  <option>USDCHF</option><option>GBPJPY</option><option>EURJPY</option>
+                  <option>EURGBP</option><option>XAUUSD</option><option>XAGUSD</option>
+                  <option>US30</option><option>NAS100</option><option>SPX500</option>
+                  <option>UK100</option><option>BTCUSD</option><option>ETHUSD</option>
+                </select>
+              </div>
+              <div class="fgi"><label>Lot Size</label><input type="number" id="cp-lot" value="0.01" step="0.01" min="0.001" oninput="calcAll()"></div>
+              <div class="fgi"><label>Number of Pips</label><input type="number" id="cp-pips" value="10" min="0" oninput="calcAll()"></div>
+            </div>
+            <div style="margin-top:16px">
+              <div class="cr">
+                <div class="crl">Total Pip Value (USD)</div>
+                <div class="crv" id="c-pipval">$0.00</div>
+                <div style="font-size:11px;color:var(--txt3);margin-top:4px" id="c-pipinfo">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="ct"><span class="ct-dot"></span>Position Size / Risk Calculator</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="fgi"><label>Account Balance ($)</label><input type="number" id="cp-bal" placeholder="e.g. 10000" oninput="calcAll()"></div>
+              <div class="fgi"><label>Risk Per Trade (%)</label><input type="number" id="cp-risk" value="1" step="0.1" oninput="calcAll()"></div>
+              <div class="fgi"><label>Stop Loss (Pips)</label><input type="number" id="cp-slpips" value="20" oninput="calcAll()"></div>
+            </div>
+            <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="cr">
+                <div class="crl">Risk $ Amount</div>
+                <div class="crv" id="c-riskd" style="font-size:22px">$0</div>
+              </div>
+              <div class="cr">
+                <div class="crl">Lot Size (Rec.)</div>
+                <div class="crv" id="c-recLot" style="font-size:22px">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div>
+          <div class="card" style="margin-bottom:14px">
+            <div class="ct"><span class="ct-dot"></span>RR Ratio Calculator</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="fg" style="grid-template-columns:1fr 1fr">
+                <div class="fgi"><label>Direction</label>
+                  <select id="cp-dir" onchange="calcRR()">
+                    <option value="buy">Buy (Long)</option>
+                    <option value="sell">Sell (Short)</option>
+                  </select>
+                </div>
+                <div class="fgi"><label>Pair Decimal Type</label>
+                  <select id="cp-dec" onchange="calcRR()">
+                    <option value="5">5-Decimal (Forex)</option>
+                    <option value="3">3-Decimal (JPY pairs)</option>
+                    <option value="2">2-Decimal (Indices/XAU)</option>
+                    <option value="1">1-Decimal (Indices)</option>
+                    <option value="0">0-Decimal (Crypto/Indices)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="fgi"><label>Entry Price</label><input type="number" id="cp-entry" placeholder="1.09500" step="0.00001" oninput="calcRR()"></div>
+              <div class="fgi"><label>Stop Loss Price</label><input type="number" id="cp-sl" placeholder="1.09000" step="0.00001" oninput="calcRR()"></div>
+              <div class="fgi"><label>Take Profit Price</label><input type="number" id="cp-tp" placeholder="1.10500" step="0.00001" oninput="calcRR()"></div>
+            </div>
+            <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+              <div class="cr"><div class="crl">SL Pips</div><div class="crv" id="c-slp" style="font-size:20px">—</div></div>
+              <div class="cr"><div class="crl">TP Pips</div><div class="crv" id="c-tpp" style="font-size:20px">—</div></div>
+              <div class="cr"><div class="crl">RR Ratio</div><div class="crv" id="c-rr" style="font-size:20px">—</div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="ct"><span class="ct-dot"></span>Quick Pip Reference</div>
+            <div class="tw">
+              <table>
+                <thead><tr><th>Pair</th><th>1 Pip</th><th>0.01 Lot</th><th>0.10 Lot</th><th>1.00 Lot</th></tr></thead>
+                <tbody>
+                  <tr><td>EURUSD</td><td>0.00010</td><td class="pos">$0.10</td><td class="pos">$1.00</td><td class="pos">$10.00</td></tr>
+                  <tr><td>GBPUSD</td><td>0.00010</td><td class="pos">$0.10</td><td class="pos">$1.00</td><td class="pos">$10.00</td></tr>
+                  <tr><td>USDJPY</td><td>0.010</td><td class="pos">≈$0.09</td><td class="pos">≈$0.93</td><td class="pos">≈$9.30</td></tr>
+                  <tr><td>XAUUSD</td><td>0.10</td><td class="pos">$0.10</td><td class="pos">$1.00</td><td class="pos">$10.00</td></tr>
+                  <tr><td>US30</td><td>1.0</td><td class="pos">$0.10</td><td class="pos">$1.00</td><td class="pos">$10.00</td></tr>
+                  <tr><td>NAS100</td><td>1.0</td><td class="pos">$0.10</td><td class="pos">$1.00</td><td class="pos">$10.00</td></tr>
+                  <tr><td>BTCUSD</td><td>1.0</td><td class="pos">$0.01</td><td class="pos">$0.10</td><td class="pos">$1.00</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="margin-top:14px;background:var(--blue-dim);border:1px solid rgba(68,136,255,.2);border-radius:var(--r);padding:12px;font-size:12px;color:var(--txt2)">
+              💡 <strong>Formula:</strong> Pip Value = (1 Pip / Exchange Rate) × Lot × Contract Size<br>
+              Risk $ = Balance × Risk% &nbsp;|&nbsp; Lot = Risk$ ÷ (SL Pips × Pip Value/Lot)
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ MARKET INTEL ══ -->
+    <section class="sec" id="market">
+      <div class="ph">
+        <div class="ph-l">
+          <div class="ph-t">Market Intel</div>
+          <div class="ph-s">Live market data, economic calendar & news</div>
+        </div>
+      </div>
+
+      <div class="mg">
+        <div>
+          <div class="card" style="margin-bottom:0;padding:0;overflow:hidden">
+            <div class="ct" style="padding:14px 18px;margin-bottom:0;border-bottom:1px solid var(--border)"><span class="ct-dot"></span>Forex & Commodity Watchlist</div>
+            <div class="widget-box" style="border:none;border-radius:0">
+              <iframe src="https://s.tradingview.com/embed-widget/market-overview/?locale=en#%7B%22colorTheme%22%3A%22dark%22%2C%22dateRange%22%3A%221D%22%2C%22showChart%22%3Atrue%2C%22largeChartUrl%22%3A%22%22%2C%22isTransparent%22%3Atrue%2C%22showSymbolLogo%22%3Atrue%2C%22showFloatingTooltip%22%3Afalse%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22440%22%2C%22tabs%22%3A%5B%7B%22title%22%3A%22Forex%22%2C%22symbols%22%3A%5B%7B%22s%22%3A%22FX%3AEURUSD%22%7D%2C%7B%22s%22%3A%22FX%3AGBPUSD%22%7D%2C%7B%22s%22%3A%22FX%3AUSDJPY%22%7D%2C%7B%22s%22%3A%22FX%3AAUDUSD%22%7D%2C%7B%22s%22%3A%22FX%3ANZDUSD%22%7D%2C%7B%22s%22%3A%22FX%3AUSDCAD%22%7D%5D%7D%2C%7B%22title%22%3A%22Commodities%22%2C%22symbols%22%3A%5B%7B%22s%22%3A%22OANDA%3AXAUUSD%22%7D%2C%7B%22s%22%3A%22OANDA%3AXAGUSD%22%7D%2C%7B%22s%22%3A%22NYMEX%3ACL1!%22%7D%2C%7B%22s%22%3A%22NYMEX%3ANG1!%22%7D%5D%7D%2C%7B%22title%22%3A%22Indices%22%2C%22symbols%22%3A%5B%7B%22s%22%3A%22FOREXCOM%3ASPXUSD%22%7D%2C%7B%22s%22%3A%22FOREXCOM%3ANDS100%22%7D%2C%7B%22s%22%3A%22FOREXCOM%3ADJI%22%7D%2C%7B%22s%22%3A%22INDEX%3AUKI%22%7D%5D%7D%2C%7B%22title%22%3A%22Crypto%22%2C%22symbols%22%3A%5B%7B%22s%22%3A%22BINANCE%3ABTCUSDT%22%7D%2C%7B%22s%22%3A%22BINANCE%3AETHUSDT%22%7D%5D%7D%5D%7D" height="440" scrolling="no"></iframe>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="padding:0;overflow:hidden">
+            <div class="ct" style="padding:14px 18px;margin-bottom:0;border-bottom:1px solid var(--border)"><span class="ct-dot"></span>Market News Feed</div>
+            <div class="widget-box" style="border:none;border-radius:0">
+              <iframe src="https://s.tradingview.com/embed-widget/timeline/?locale=en#%7B%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Atrue%2C%22displayMode%22%3A%22regular%22%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22440%22%7D" height="440" scrolling="no"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Economic Calendar -->
+      <div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">
+        <div class="ct" style="padding:14px 18px;margin-bottom:0;border-bottom:1px solid var(--border)"><span class="ct-dot"></span>Economic Calendar — High Impact Events</div>
+        <div class="widget-box" style="border:none;border-radius:0">
+          <iframe src="https://s.tradingview.com/external-embedding/embed-widget-events.html?locale=en#%7B%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22500%22%2C%22importanceFilter%22%3A%222%2C3%22%7D" height="500" scrolling="no"></iframe>
+        </div>
+      </div>
+
+      <!-- Geopolitical Tracker -->
+      <div class="card">
+        <div class="ct"><span class="ct-dot"></span>Geopolitical Risk Tracker</div>
+        <p style="color:var(--txt2);font-size:13px;margin-bottom:14px">Track macro events and geopolitical risks that may impact your trades.</p>
+        <div class="geo-row">
+          <input type="text" id="g-event" placeholder="Event — e.g. Fed Rate Decision, US Elections, Oil Embargo" style="flex:2;min-width:200px">
+          <input type="text" id="g-impact" placeholder="Expected market impact" style="flex:1;min-width:140px">
+          <select id="g-risk" style="width:130px">
+            <option value="high">🔴 High Risk</option>
+            <option value="med">🟡 Medium Risk</option>
+            <option value="low">🟢 Low Risk</option>
+          </select>
+          <input type="date" id="g-date" style="width:145px">
+          <button class="btn btn-p btn-sm" onclick="addGeo()">+ Add</button>
+        </div>
+        <div id="geo-list"></div>
+        <div id="geo-empty" class="empty" style="padding:24px;display:none">
+          <p>No geopolitical events tracked yet. Add one above.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ ANALYTICS ══ -->
+    <section class="sec" id="analytics">
+      <div class="ph">
+        <div class="ph-l">
+          <div class="ph-t">Deep Analytics</div>
+          <div class="ph-s">Advanced performance breakdown & statistics</div>
+        </div>
+      </div>
+      <div class="dg3" style="margin-bottom:14px" id="ana-stats"></div>
+      <div class="dg" style="margin-bottom:14px">
+        <div class="card">
+          <div class="ct"><span class="ct-dot"></span>Monthly P&L</div>
+          <div class="chart-wrap"><canvas id="monthChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ct"><span class="ct-dot"></span>Performance by Session</div>
+          <div class="chart-wrap"><canvas id="sessionChart"></canvas></div>
+        </div>
+      </div>
+      <div class="dg">
+        <div class="card">
+          <div class="ct"><span class="ct-dot"></span>Strategy Breakdown</div>
+          <div id="strat-breakdown"></div>
+        </div>
+        <div class="card">
+          <div class="ct"><span class="ct-dot"></span>Consecutive Wins / Losses</div>
+          <div id="streak-display"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- Add/Edit Trade -->
+<div class="mo" id="trade-modal">
+  <div class="modal">
+    <div class="mt">
+      <span id="modal-title">Add New Trade</span>
+      <button class="mx" onclick="closeMo('trade-modal')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="fg">
+      <div class="fgi"><label>Date</label><input type="date" id="t-date"></div>
+      <div class="fgi"><label>Time (Entry)</label><input type="time" id="t-time"></div>
+      <div class="fgi">
+        <label>Currency Pair</label>
+        <select id="t-pair" onchange="checkCustomPair()">
+          <optgroup label="Forex Majors">
+            <option>EURUSD</option><option>GBPUSD</option><option>USDJPY</option>
+            <option>AUDUSD</option><option>NZDUSD</option><option>USDCAD</option><option>USDCHF</option>
+          </optgroup>
+          <optgroup label="Forex Crosses">
+            <option>GBPJPY</option><option>EURJPY</option><option>EURGBP</option>
+            <option>AUDJPY</option><option>GBPAUD</option><option>EURCAD</option>
+          </optgroup>
+          <optgroup label="Commodities">
+            <option>XAUUSD</option><option>XAGUSD</option>
+          </optgroup>
+          <optgroup label="Indices">
+            <option>US30</option><option>NAS100</option><option>SPX500</option><option>UK100</option><option>GER40</option>
+          </optgroup>
+          <optgroup label="Crypto">
+            <option>BTCUSD</option><option>ETHUSD</option>
+          </optgroup>
+          <option value="CUSTOM">— Custom Pair —</option>
+        </select>
+      </div>
+      <div class="fgi" id="custom-pair-wrap" style="display:none"><label>Custom Pair Symbol</label><input type="text" id="t-custom-pair" placeholder="e.g. USDSGD, USDZAR"></div>
+      <div class="fgi">
+        <label>Direction</label>
+        <select id="t-dir"><option value="Buy">📈 Buy (Long)</option><option value="Sell">📉 Sell (Short)</option></select>
+      </div>
+      <div class="fgi">
+        <label>Session</label>
+        <select id="t-sess">
+          <option>Asian</option><option>London</option><option>New York</option>
+          <option>London+NY Overlap</option><option>Sydney</option>
+        </select>
+      </div>
+      <div class="fgi"><label>Entry Price</label><input type="number" id="t-entry" step="0.00001" placeholder="1.09500" oninput="autoRR()"></div>
+      <div class="fgi"><label>Stop Loss (SL)</label><input type="number" id="t-sl" step="0.00001" placeholder="1.09000" oninput="autoRR()"></div>
+      <div class="fgi"><label>Take Profit (TP)</label><input type="number" id="t-tp" step="0.00001" placeholder="1.10500" oninput="autoRR()"></div>
+      <div class="fgi"><label>Lot Size</label><input type="number" id="t-lot" step="0.01" placeholder="0.10"></div>
+      <div class="fgi">
+        <label>Result</label>
+        <select id="t-result">
+          <option value="Win">✅ Win</option>
+          <option value="Loss">❌ Loss</option>
+          <option value="Break Even">➖ Break Even</option>
+        </select>
+      </div>
+      <div class="fgi"><label>Profit / Loss ($) — use negative for loss</label><input type="number" id="t-pnl" step="0.01" placeholder="+125.50 or -45.00"></div>
+      <div class="fgi">
+        <label>Strategy / Setup</label>
+        <select id="t-strat">
+          <option>SMC — BOS/CHOCH</option><option>SMC — OB Retest</option>
+          <option>SMC — FVG Fill</option><option>ICT — Killzone</option>
+          <option>ICT — PD Array</option><option>ICT — Silver Bullet</option>
+          <option>Price Action — Pin Bar</option><option>Price Action — Engulfing</option>
+          <option>Breakout</option><option>Trend Following</option>
+          <option>Scalping</option><option>News Trade</option><option>Custom</option>
+        </select>
+      </div>
+      <div class="fgi">
+        <label>Timeframe</label>
+        <select id="t-tf">
+          <option>M1</option><option>M5</option><option>M15</option>
+          <option>M30</option><option>H1</option><option>H4</option>
+          <option>D1</option><option>W1</option>
+        </select>
+      </div>
+      <div class="fgi"><label>RR Ratio (auto-calc)</label><input type="text" id="t-rr" readonly placeholder="Auto from Entry/SL/TP" style="color:var(--gold)"></div>
+      <div class="fgi">
+        <label>Emotional State</label>
+        <select id="t-emo">
+          <option>😊 Confident</option><option>😐 Neutral</option>
+          <option>😰 Anxious</option><option>😤 FOMO</option>
+          <option>😌 Patient</option><option>🎯 Focused</option>
+          <option>😵 Overtrading</option><option>💪 Disciplined</option>
+        </select>
+      </div>
+      <div class="fgi full"><label>Notes / Analysis / Lesson</label><textarea id="t-notes" placeholder="Describe your confluences, reason for entry, what you observed, lessons learned…"></textarea></div>
+    </div>
+    <div class="fa">
+      <button class="btn btn-o" onclick="closeMo('trade-modal')">Cancel</button>
+      <button class="btn btn-p" onclick="saveTrade()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save Trade
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Account Setup -->
+<div class="mo" id="setup-modal">
+  <div class="modal" style="max-width:500px">
+    <div class="mt">
+      Account Setup
+      <button class="mx" onclick="closeMo('setup-modal')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:13px">
+      <div class="fgi"><label>Account Name / Label</label><input type="text" id="s-name" placeholder="e.g. FTMO $10K Challenge"></div>
+      <div class="fgi"><label>Broker / Prop Firm</label><input type="text" id="s-broker" placeholder="e.g. FTMO, ICMarkets, Pepperstone"></div>
+      <div class="fgi">
+        <label>Account Type</label>
+        <select id="s-type">
+          <option>Personal Account</option>
+          <option>Prop Firm — Challenge</option>
+          <option>Prop Firm — Funded</option>
+          <option>Demo Account</option>
+          <option>Cent Account</option>
+        </select>
+      </div>
+      <div class="fgi"><label>Initial Capital ($)</label><input type="number" id="s-capital" placeholder="10000"></div>
+      <div class="fgi"><label>Max Overall Loss Limit (%)</label><input type="number" id="s-maxloss" placeholder="10" step="0.1"></div>
+      <div class="fgi"><label>Daily Loss Limit (%)</label><input type="number" id="s-dayloss" placeholder="5" step="0.1"></div>
+      <div class="fgi"><label>Profit Target (%)</label><input type="number" id="s-target" placeholder="10" step="0.1"></div>
+      <div class="fgi"><label>Default Risk Per Trade (%)</label><input type="number" id="s-riskpt" placeholder="1" step="0.1"></div>
+    </div>
+    <div class="fa">
+      <button class="btn btn-o" onclick="closeMo('setup-modal')">Cancel</button>
+      <button class="btn btn-p" onclick="saveSetup()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save Settings
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// STATE & STORAGE
+// ══════════════════════════════════════
+let trades = JSON.parse(localStorage.getItem('tv_trades') || '[]');
+let settings = JSON.parse(localStorage.getItem('tv_settings') || '{}');
+let geoEvents = JSON.parse(localStorage.getItem('tv_geo') || '[]');
+let editId = null;
+let eqChart = null, wlChart = null, monthChart = null, sessChart = null;
+
+function persist() {
+  localStorage.setItem('tv_trades', JSON.stringify(trades));
+  localStorage.setItem('tv_settings', JSON.stringify(settings));
+  localStorage.setItem('tv_geo', JSON.stringify(geoEvents));
+}
+
+// ══════════════════════════════════════
+// CLOCK
+// ══════════════════════════════════════
+function tick() {
+  const now = new Date();
+  const y = now.getFullYear(), mo = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
+  const h = String(now.getHours()).padStart(2,'0'), m = String(now.getMinutes()).padStart(2,'0'), s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clk-local').textContent = `${y}-${mo}-${d} ${h}:${m}:${s}`;
+  const utcH = String(now.getUTCHours()).padStart(2,'0');
+  const utcM = String(now.getUTCMinutes()).padStart(2,'0');
+  const utcS = String(now.getUTCSeconds()).padStart(2,'0');
+  document.getElementById('clk-utc').textContent = `UTC ${utcH}:${utcM}:${utcS}`;
+}
+setInterval(tick, 1000); tick();
+
+// ══════════════════════════════════════
+// TABS
+// ══════════════════════════════════════
+function goTab(id, btn) {
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'dashboard') renderDash();
+  if (id === 'journal') renderJournal();
+  if (id === 'calculator') calcAll();
+  if (id === 'market') renderGeo();
+  if (id === 'analytics') renderAnalytics();
+}
+
+// ══════════════════════════════════════
+// MODAL HELPERS
+// ══════════════════════════════════════
+function openMo(id) { document.getElementById(id).classList.add('show'); }
+function closeMo(id) { document.getElementById(id).classList.remove('show'); editId = null; }
+
+// ══════════════════════════════════════
+// SETUP
+// ══════════════════════════════════════
+function openSetup() {
+  document.getElementById('s-name').value = settings.name || '';
+  document.getElementById('s-broker').value = settings.broker || '';
+  document.getElementById('s-type').value = settings.type || 'Personal Account';
+  document.getElementById('s-capital').value = settings.capital || '';
+  document.getElementById('s-maxloss').value = settings.maxloss || '';
+  document.getElementById('s-dayloss').value = settings.dayloss || '';
+  document.getElementById('s-target').value = settings.target || '';
+  document.getElementById('s-riskpt').value = settings.riskpt || '';
+  openMo('setup-modal');
+}
+
+function saveSetup() {
+  settings.name = document.getElementById('s-name').value;
+  settings.broker = document.getElementById('s-broker').value;
+  settings.type = document.getElementById('s-type').value;
+  settings.capital = parseFloat(document.getElementById('s-capital').value) || 0;
+  settings.maxloss = parseFloat(document.getElementById('s-maxloss').value) || 0;
+  settings.dayloss = parseFloat(document.getElementById('s-dayloss').value) || 0;
+  settings.target = parseFloat(document.getElementById('s-target').value) || 0;
+  settings.riskpt = parseFloat(document.getElementById('s-riskpt').value) || 1;
+  persist();
+  closeMo('setup-modal');
+  renderDash();
+  toast('Account settings saved ✓', 'ok');
+}
+
+// ══════════════════════════════════════
+// TRADE MODAL
+// ══════════════════════════════════════
+function openAddTrade() {
+  editId = null;
+  document.getElementById('modal-title').textContent = 'Add New Trade';
+  const now = new Date();
+  document.getElementById('t-date').value = now.toISOString().split('T')[0];
+  document.getElementById('t-time').value = now.toTimeString().slice(0,5);
+  ['t-pair','t-dir','t-sess','t-entry','t-sl','t-tp','t-lot','t-pnl','t-rr','t-notes','t-custom-pair'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el.tagName === 'SELECT') el.selectedIndex = 0;
+    else el.value = '';
+  });
+  document.getElementById('t-result').value = 'Win';
+  document.getElementById('t-strat').selectedIndex = 0;
+  document.getElementById('t-tf').value = 'H1';
+  document.getElementById('t-emo').selectedIndex = 0;
+  document.getElementById('custom-pair-wrap').style.display = 'none';
+  openMo('trade-modal');
+}
+
+function openEditTrade(id) {
+  const t = trades.find(x => x.id === id);
+  if (!t) return;
+  editId = id;
+  document.getElementById('modal-title').textContent = 'Edit Trade';
+  document.getElementById('t-date').value = t.date;
+  document.getElementById('t-time').value = t.time;
+  const opts = [...document.getElementById('t-pair').options].map(o => o.value);
+  if (opts.includes(t.pair)) {
+    document.getElementById('t-pair').value = t.pair;
+    document.getElementById('custom-pair-wrap').style.display = 'none';
+  } else {
+    document.getElementById('t-pair').value = 'CUSTOM';
+    document.getElementById('t-custom-pair').value = t.pair;
+    document.getElementById('custom-pair-wrap').style.display = '';
+  }
+  document.getElementById('t-dir').value = t.dir;
+  document.getElementById('t-sess').value = t.sess;
+  document.getElementById('t-entry').value = t.entry;
+  document.getElementById('t-sl').value = t.sl;
+  document.getElementById('t-tp').value = t.tp;
+  document.getElementById('t-lot').value = t.lot;
+  document.getElementById('t-result').value = t.result;
+  document.getElementById('t-pnl').value = t.pnl;
+  document.getElementById('t-strat').value = t.strat;
+  document.getElementById('t-tf').value = t.tf;
+  document.getElementById('t-rr').value = t.rr;
+  document.getElementById('t-emo').value = t.emo;
+  document.getElementById('t-notes').value = t.notes;
+  openMo('trade-modal');
+}
+
+function checkCustomPair() {
+  document.getElementById('custom-pair-wrap').style.display = 
+    document.getElementById('t-pair').value === 'CUSTOM' ? '' : 'none';
+}
+
+function autoRR() {
+  const entry = parseFloat(document.getElementById('t-entry').value);
+  const sl = parseFloat(document.getElementById('t-sl').value);
+  const tp = parseFloat(document.getElementById('t-tp').value);
+  if (!entry || !sl || !tp) return;
+  const slDist = Math.abs(entry - sl);
+  const tpDist = Math.abs(tp - entry);
+  if (slDist === 0) return;
+  document.getElementById('t-rr').value = `1:${(tpDist / slDist).toFixed(2)}`;
+}
+
+function saveTrade() {
+  const pairSel = document.getElementById('t-pair').value;
+  const pair = pairSel === 'CUSTOM' ? document.getElementById('t-custom-pair').value.toUpperCase().trim() : pairSel;
+  if (!pair) { toast('Please specify a pair!', 'err'); return; }
+  const pnl = parseFloat(document.getElementById('t-pnl').value) || 0;
+
+  const trade = {
+    id: editId || Date.now().toString(),
+    date: document.getElementById('t-date').value,
+    time: document.getElementById('t-time').value,
+    pair,
+    dir: document.getElementById('t-dir').value,
+    sess: document.getElementById('t-sess').value,
+    entry: document.getElementById('t-entry').value,
+    sl: document.getElementById('t-sl').value,
+    tp: document.getElementById('t-tp').value,
+    lot: document.getElementById('t-lot').value,
+    result: document.getElementById('t-result').value,
+    pnl,
+    strat: document.getElementById('t-strat').value,
+    tf: document.getElementById('t-tf').value,
+    rr: document.getElementById('t-rr').value,
+    emo: document.getElementById('t-emo').value,
+    notes: document.getElementById('t-notes').value,
+  };
+
+  if (editId) {
+    const i = trades.findIndex(x => x.id === editId);
+    trades[i] = trade;
+  } else {
+    trades.push(trade);
+  }
+  trades.sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+  persist();
+  closeMo('trade-modal');
+  renderDash();
+  renderJournal();
+  toast(editId ? 'Trade updated ✓' : 'Trade saved ✓', 'ok');
+}
+
+function deleteTrade(id) {
+  if (!confirm('Delete this trade? This cannot be undone.')) return;
+  trades = trades.filter(x => x.id !== id);
+  persist();
+  renderDash();
+  renderJournal();
+  toast('Trade deleted', 'ok');
+}
+
+// ══════════════════════════════════════
+// STATS
+// ══════════════════════════════════════
+function stats() {
+  const cap = settings.capital || 0;
+  const tPnL = trades.reduce((s, t) => s + t.pnl, 0);
+  const balance = cap + tPnL;
+  const growth = cap > 0 ? (tPnL / cap * 100) : 0;
+  const wins = trades.filter(t => t.result === 'Win').length;
+  const losses = trades.filter(t => t.result === 'Loss').length;
+  const be = trades.filter(t => t.result === 'Break Even').length;
+  const total = trades.length;
+  const wr = total > 0 ? (wins / total * 100).toFixed(1) : '0.0';
+  const grossP = trades.filter(t => t.pnl > 0).reduce((s, t) => s + t.pnl, 0);
+  const grossL = Math.abs(trades.filter(t => t.pnl < 0).reduce((s, t) => s + t.pnl, 0));
+  const pf = grossL > 0 ? (grossP / grossL).toFixed(2) : grossP > 0 ? '∞' : '0.00';
+  const avgW = wins > 0 ? (grossP / wins).toFixed(2) : '0.00';
+  const avgL = losses > 0 ? (grossL / losses).toFixed(2) : '0.00';
+  const best = total > 0 ? trades.reduce((a, b) => a.pnl > b.pnl ? a : b) : null;
+  const worst = total > 0 ? trades.reduce((a, b) => a.pnl < b.pnl ? a : b) : null;
+
+  // Max Drawdown
+  let peak = cap, maxDD = 0, running = cap;
+  [...trades].reverse().forEach(t => {
+    running += t.pnl;
+    if (running > peak) peak = running;
+    const dd = peak > 0 ? (peak - running) / peak * 100 : 0;
+    if (dd > maxDD) maxDD = dd;
+  });
+
+  // Consecutive streak
+  let curW = 0, curL = 0, maxW = 0, maxL = 0, streak = { w: 0, l: 0 };
+  [...trades].reverse().forEach(t => {
+    if (t.result === 'Win') { curW++; curL = 0; maxW = Math.max(maxW, curW); }
+    else if (t.result === 'Loss') { curL++; curW = 0; maxL = Math.max(maxL, curL); }
+    else { curW = 0; curL = 0; }
+  });
+  if (trades.length > 0) {
+    streak.w = curW; streak.l = curL;
+  }
+
+  return { cap, tPnL, balance, growth, wins, losses, be, total, wr,
+           grossP, grossL, pf, avgW, avgL, best, worst, maxDD: maxDD.toFixed(2), streak, maxW, maxL };
+}
+
+// ══════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════
+function renderDash() {
+  const s = stats();
+  const name = settings.name || 'My Account';
+  document.getElementById('acc-subtitle').textContent =
+    `${name}  ·  ${settings.type || '—'}  ·  ${settings.broker || '—'}`;
+
+  const hasSetup = settings.capital > 0;
+  document.getElementById('setup-prompt').style.display = hasSetup ? 'none' : '';
+
+  const maxLossAmt = settings.capital && settings.maxloss ? settings.capital * settings.maxloss / 100 : 0;
+  const lossUsed = s.tPnL < 0 ? Math.abs(s.tPnL) : 0;
+  const lossRisk = maxLossAmt > 0 ? (lossUsed / maxLossAmt * 100).toFixed(1) : 0;
+  const targetAmt = settings.capital && settings.target ? settings.capital * settings.target / 100 : 0;
+  const targetPct = targetAmt > 0 ? Math.min(s.tPnL / targetAmt * 100, 100).toFixed(1) : 0;
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="sc"><div class="sl">Initial Capital</div><div class="sv a">$${fn(s.cap)}</div><div class="ss">${settings.type||'—'}</div></div>
+    <div class="sc ${s.tPnL>=0?'g':'r'}"><div class="sl">Current Balance</div><div class="sv ${s.tPnL>=0?'p':'n'}">$${fn(s.balance)}</div><div class="ss">P&L: ${s.tPnL>=0?'+':''}$${fn(s.tPnL)}</div></div>
+    <div class="sc ${s.growth>=0?'g':'r'}">
+      <div class="sl">Account Growth</div>
+      <div class="sv ${s.growth>=0?'p':'n'}">${s.growth>=0?'+':''}${s.growth.toFixed(2)}%</div>
+      <div class="ss"><div class="pb"><div class="pf ${s.growth>=0?'g':'r'}" style="width:${Math.min(Math.abs(s.growth/Math.max(settings.target||10,1))*100,100)}%"></div></div></div>
+    </div>
+    <div class="sc"><div class="sl">Win Rate</div><div class="sv ${s.wr>=55?'p':s.wr>=40?'':'n'}">${s.wr}%</div><div class="ss">${s.wins}W / ${s.losses}L / ${s.be}BE · ${s.total} trades</div></div>
+    <div class="sc"><div class="sl">Profit Factor</div><div class="sv ${parseFloat(s.pf)>=1.2?'p':parseFloat(s.pf)>=1?'':'n'}">${s.pf}</div><div class="ss">AvgW $${s.avgW} · AvgL $${s.avgL}</div></div>
+    <div class="sc ${parseFloat(lossRisk)>=80?'r':''}">
+      <div class="sl">Max Loss Used</div>
+      <div class="sv ${parseFloat(lossRisk)>=80?'n':''}">${lossRisk}%</div>
+      <div class="ss">Limit: ${settings.maxloss||0}% ($${fn(maxLossAmt)})<div class="pb"><div class="pf r" style="width:${Math.min(lossRisk,100)}%"></div></div></div>
+    </div>
+    <div class="sc">
+      <div class="sl">Profit Target</div>
+      <div class="sv p">${targetPct}%</div>
+      <div class="ss">Target: ${settings.target||0}% ($${fn(targetAmt)})<div class="pb"><div class="pf g" style="width:${Math.min(targetPct,100)}%"></div></div></div>
+    </div>
+    <div class="sc ${s.maxDD>8?'r':''}"><div class="sl">Max Drawdown</div><div class="sv ${s.maxDD>8?'n':''}">${s.maxDD}%</div><div class="ss">Peak-to-trough</div></div>
+  `;
+
+  buildEquityChart(s.cap);
+  buildWLChart(s.wins, s.losses, s.be);
+  buildBestWorst(s);
+  buildPairPerf();
+  buildRecent();
+}
+
+function buildEquityChart(cap) {
+  const ctx = document.getElementById('eqChart').getContext('2d');
+  if (eqChart) eqChart.destroy();
+  const sorted = [...trades].reverse();
+  let run = cap || 0;
+  const labels = ['Start'], data = [run];
+  sorted.forEach(t => { run += t.pnl; labels.push(t.date); data.push(+run.toFixed(2)); });
+  const isPos = data[data.length-1] >= data[0];
+  const color = isPos ? '#00c896' : '#f04060';
+  eqChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ data, borderColor: color, borderWidth: 2.5, fill: true,
+      backgroundColor: isPos ? 'rgba(0,200,150,0.07)' : 'rgba(240,64,96,0.07)',
+      tension: 0.42, pointRadius: data.length<=30?3:0, pointHoverRadius:5, pointBackgroundColor: color }]},
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => `$${fn(c.raw)}` } }},
+      scales:{
+        x:{ ticks:{ color:'#3d5060', font:{size:9}, maxTicksLimit:8 }, grid:{ color:'#1c2b3a' }},
+        y:{ ticks:{ color:'#3d5060', callback: v=>'$'+fn(v) }, grid:{ color:'#1c2b3a' }}
+      }}
+  });
+}
+
+function buildWLChart(w, l, be) {
+  const ctx = document.getElementById('wlChart').getContext('2d');
+  if (wlChart) wlChart.destroy();
+  wlChart = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels:['Win','Loss','Break Even'], datasets:[{ data:[w,l,be],
+      backgroundColor:['rgba(0,200,150,.75)','rgba(240,64,96,.75)','rgba(68,136,255,.75)'],
+      borderColor:['#00c896','#f04060','#4488ff'], borderWidth:2 }]},
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'60%',
+      plugins:{ legend:{ position:'bottom', labels:{ color:'#7a95a8', padding:14, font:{size:12} }}}}
+  });
+}
+
+function buildBestWorst(s) {
+  const el = document.getElementById('best-worst');
+  if (!s.best && !s.worst) { el.innerHTML='<p style="color:var(--txt3);font-size:13px">No trades yet</p>'; return; }
+  el.innerHTML = `
+    ${s.best?`<div style="background:var(--green-dim);border:1px solid rgba(0,200,150,.2);border-radius:8px;padding:14px;margin-bottom:10px">
+      <div style="font-size:10px;letter-spacing:1px;color:var(--green);margin-bottom:8px">🏆 BEST TRADE</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-family:var(--fm);font-weight:500;color:var(--txt1)">${s.best.pair}</div>
+        <div style="font-size:11px;color:var(--txt3)">${s.best.date} · ${s.best.dir} · ${s.best.sess}</div></div>
+        <div style="font-family:var(--fm);font-size:22px;color:var(--green)">+$${fn(s.best.pnl)}</div>
+      </div></div>`:''}
+    ${s.worst?`<div style="background:var(--red-dim);border:1px solid rgba(240,64,96,.2);border-radius:8px;padding:14px">
+      <div style="font-size:10px;letter-spacing:1px;color:var(--red);margin-bottom:8px">💔 WORST TRADE</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-family:var(--fm);font-weight:500;color:var(--txt1)">${s.worst.pair}</div>
+        <div style="font-size:11px;color:var(--txt3)">${s.worst.date} · ${s.worst.dir} · ${s.worst.sess}</div></div>
+        <div style="font-family:var(--fm);font-size:22px;color:var(--red)">$${fn(s.worst.pnl)}</div>
+      </div></div>`:''}
+  `;
+}
+
+function buildPairPerf() {
+  const el = document.getElementById('pair-perf');
+  const map = {};
+  trades.forEach(t => {
+    if (!map[t.pair]) map[t.pair] = { pnl:0, count:0, wins:0 };
+    map[t.pair].pnl += t.pnl;
+    map[t.pair].count++;
+    if (t.result === 'Win') map[t.pair].wins++;
+  });
+  const pairs = Object.entries(map).sort((a,b) => b[1].pnl - a[1].pnl);
+  if (!pairs.length) { el.innerHTML='<p style="color:var(--txt3);font-size:13px">No trades yet</p>'; return; }
+  el.innerHTML = pairs.map(([pair, d]) => {
+    const wr = (d.wins / d.count * 100).toFixed(0);
+    const p = d.pnl >= 0;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div><span class="badge bpair">${pair}</span><span style="font-size:11px;color:var(--txt3);margin-left:8px">${d.count}T · ${wr}% WR</span></div>
+      <span style="font-family:var(--fm);font-size:13px;color:${p?'var(--green)':'var(--red)'}">${p?'+':''}$${fn(d.pnl)}</span>
+    </div>`;
+  }).join('');
+}
+
+function buildRecent() {
+  const recent = trades.slice(0, 10);
+  const el = document.getElementById('recent-tbody');
+  if (!recent.length) { el.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--txt3);padding:24px">No trades yet — click Add Trade</td></tr>`; return; }
+  el.innerHTML = recent.map(t => {
+    const p = t.pnl >= 0;
+    return `<tr>
+      <td style="color:var(--txt1)">${t.date} <span style="color:var(--txt3)">${t.time}</span></td>
+      <td><span class="badge bpair">${t.pair}</span></td>
+      <td><span class="badge ${t.dir==='Buy'?'bbuy':'bsel'}">${t.dir}</span></td>
+      <td><span class="badge ${t.result==='Win'?'bw':t.result==='Loss'?'bl':'bbe'}">${t.result}</span></td>
+      <td style="color:${p?'var(--green)':'var(--red)'};font-weight:500">${p?'+':''}$${fn(t.pnl)}</td>
+      <td style="color:var(--gold)">${t.rr||'—'}</td>
+      <td style="color:var(--txt3)">${t.strat||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// JOURNAL
+// ══════════════════════════════════════
+function clearFilters() {
+  ['f-search','f-result','f-pair','f-dir','f-from','f-to'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = '';
+  });
+  renderJournal();
+}
+
+function renderJournal() {
+  const pairs = [...new Set(trades.map(t => t.pair))];
+  const pf = document.getElementById('f-pair');
+  const cur = pf.value;
+  pf.innerHTML = '<option value="">All Pairs</option>' + pairs.map(p=>`<option value="${p}">${p}</option>`).join('');
+  if (pairs.includes(cur)) pf.value = cur;
+
+  const srch = document.getElementById('f-search').value.toLowerCase();
+  const res = document.getElementById('f-result').value;
+  const pair = pf.value;
+  const dir = document.getElementById('f-dir').value;
+  const from = document.getElementById('f-from').value;
+  const to = document.getElementById('f-to').value;
+
+  const filtered = trades.filter(t => {
+    if (srch && ![t.pair,t.notes,t.strat,t.emo].join(' ').toLowerCase().includes(srch)) return false;
+    if (res && t.result !== res) return false;
+    if (pair && t.pair !== pair) return false;
+    if (dir && t.dir !== dir) return false;
+    if (from && t.date < from) return false;
+    if (to && t.date > to) return false;
+    return true;
+  });
+
+  document.getElementById('journal-count').textContent = `${trades.length} total · ${filtered.length} showing`;
+
+  // Build running balance map
+  let run = settings.capital || 0;
+  const balMap = {};
+  [...trades].reverse().forEach(t => { run += t.pnl; balMap[t.id] = run; });
+
+  const tbody = document.getElementById('j-tbody');
+  const empty = document.getElementById('j-empty');
+
+  if (!filtered.length) {
+    tbody.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = filtered.map((t, i) => {
+    const bal = balMap[t.id] || 0;
+    const growth = settings.capital ? ((bal - settings.capital) / settings.capital * 100).toFixed(2) : null;
+    const p = t.pnl >= 0;
+    const gp = growth !== null ? parseFloat(growth) >= 0 : true;
+    return `<tr>
+      <td style="color:var(--txt3)">${filtered.length - i}</td>
+      <td style="color:var(--txt1)">${t.date}<br><span style="color:var(--txt3)">${t.time}</span></td>
+      <td><span class="badge bpair">${t.pair}</span></td>
+      <td><span class="badge ${t.dir==='Buy'?'bbuy':'bsel'}">${t.dir}</span></td>
+      <td style="color:var(--txt1)">${t.entry||'—'}</td>
+      <td style="color:var(--red)">${t.sl||'—'}</td>
+      <td style="color:var(--green)">${t.tp||'—'}</td>
+      <td>${t.lot||'—'}</td>
+      <td style="color:var(--gold)">${t.rr||'—'}</td>
+      <td style="color:var(--txt2)">${t.sess}</td>
+      <td><span class="badge ${t.result==='Win'?'bw':t.result==='Loss'?'bl':'bbe'}">${t.result}</span></td>
+      <td style="color:${p?'var(--green)':'var(--red)'};font-weight:600">${p?'+':''}$${fn(t.pnl)}</td>
+      <td style="color:var(--txt2);font-family:var(--fm)">$${fn(bal)}</td>
+      <td style="color:${gp?'var(--green)':'var(--red)'}">${growth!==null?(gp?'+':'')+growth+'%':'—'}</td>
+      <td style="color:var(--txt3);font-size:11px">${t.strat||'—'}</td>
+      <td>${t.emo||'—'}</td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;color:var(--txt3)">${t.notes||'—'}</td>
+      <td>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-o btn-sm" onclick="openEditTrade('${t.id}')">Edit</button>
+          <button class="btn btn-d btn-sm" onclick="deleteTrade('${t.id}')">Del</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// CSV Export
+function exportCSV() {
+  const headers = ['Date','Time','Pair','Direction','Session','Entry','SL','TP','Lot','RR','Result','PnL','Strategy','TF','Emotion','Notes'];
+  const rows = trades.map(t => [t.date,t.time,t.pair,t.dir,t.sess,t.entry,t.sl,t.tp,t.lot,t.rr,t.result,t.pnl,t.strat,t.tf,t.emo,`"${(t.notes||'').replace(/"/g,'""')}"`]);
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'TradeVault_Journal.csv';
+  a.click();
+  toast('CSV exported ✓', 'ok');
+}
+
+// ══════════════════════════════════════
+// CALCULATOR
+// ══════════════════════════════════════
+const pipMap = {
+  EURUSD:{pip:.0001,pv:10},GBPUSD:{pip:.0001,pv:10},AUDUSD:{pip:.0001,pv:10},
+  NZDUSD:{pip:.0001,pv:10},USDCAD:{pip:.0001,pv:7.6},USDCHF:{pip:.0001,pv:11.2},
+  EURGBP:{pip:.0001,pv:10},USDJPY:{pip:.01,pv:9.3},GBPJPY:{pip:.01,pv:9.3},
+  EURJPY:{pip:.01,pv:9.3},AUDJPY:{pip:.01,pv:9.3},
+  XAUUSD:{pip:.1,pv:1},XAGUSD:{pip:.01,pv:.5},
+  US30:{pip:1,pv:1},NAS100:{pip:1,pv:1},SPX500:{pip:.1,pv:.1},UK100:{pip:1,pv:1},GER40:{pip:1,pv:1},
+  BTCUSD:{pip:1,pv:.01},ETHUSD:{pip:.1,pv:.01},
+};
+
+function calcAll() {
+  const pair = document.getElementById('cp-pair').value;
+  const lot = parseFloat(document.getElementById('cp-lot').value) || 0;
+  const pips = parseFloat(document.getElementById('cp-pips').value) || 0;
+  const info = pipMap[pair] || { pip:.0001, pv:10 };
+  const pipVal = lot * info.pv;
+  const total = pipVal * pips;
+  document.getElementById('c-pipval').textContent = '$' + total.toFixed(2);
+  document.getElementById('c-pipinfo').textContent = `$${pipVal.toFixed(4)} per pip`;
+
+  const bal = parseFloat(document.getElementById('cp-bal').value) || settings.capital || 0;
+  const riskPct = parseFloat(document.getElementById('cp-risk').value) || 1;
+  const slPips = parseFloat(document.getElementById('cp-slpips').value) || 0;
+  const riskD = bal * riskPct / 100;
+  document.getElementById('c-riskd').textContent = '$' + riskD.toFixed(2);
+  const recLot = slPips > 0 && info.pv > 0 ? (riskD / (slPips * info.pv)).toFixed(2) : '—';
+  document.getElementById('c-recLot').textContent = recLot;
+
+  calcRR();
+}
+
+function calcRR() {
+  const entry = parseFloat(document.getElementById('cp-entry').value);
+  const sl = parseFloat(document.getElementById('cp-sl').value);
+  const tp = parseFloat(document.getElementById('cp-tp').value);
+  const decStr = document.getElementById('cp-dec').value;
+  const dec = parseInt(decStr);
+  const pipSize = Math.pow(10, -dec);
+  if (!entry || !sl || !tp) return;
+  const slPips = Math.round(Math.abs(entry - sl) / pipSize);
+  const tpPips = Math.round(Math.abs(tp - entry) / pipSize);
+  const rr = slPips > 0 ? (tpPips / slPips).toFixed(2) : '—';
+  document.getElementById('c-slp').textContent = slPips;
+  document.getElementById('c-tpp').textContent = tpPips;
+  document.getElementById('c-rr').textContent = rr !== '—' ? `1:${rr}` : '—';
+}
+
+// ══════════════════════════════════════
+// GEO EVENTS
+// ══════════════════════════════════════
+function addGeo() {
+  const event = document.getElementById('g-event').value.trim();
+  const impact = document.getElementById('g-impact').value.trim();
+  const risk = document.getElementById('g-risk').value;
+  const date = document.getElementById('g-date').value || new Date().toISOString().split('T')[0];
+  if (!event) { toast('Please enter an event name', 'err'); return; }
+  geoEvents.unshift({ id: Date.now().toString(), event, impact, risk, date });
+  persist();
+  document.getElementById('g-event').value = '';
+  document.getElementById('g-impact').value = '';
+  renderGeo();
+  toast('Geopolitical event added ✓', 'ok');
+}
+
+function deleteGeo(id) {
+  geoEvents = geoEvents.filter(e => e.id !== id);
+  persist();
+  renderGeo();
+}
+
+function renderGeo() {
+  const el = document.getElementById('geo-list');
+  const em = document.getElementById('geo-empty');
+  if (!geoEvents.length) { el.innerHTML = ''; em.style.display = ''; return; }
+  em.style.display = 'none';
+  const rc = {high:'var(--red)',med:'var(--gold)',low:'var(--green)'};
+  const rb = {high:'var(--red-dim)',med:'var(--gold-dim)',low:'var(--green-dim)'};
+  const rb2 = {high:'rgba(240,64,96,.2)',med:'rgba(232,160,32,.2)',low:'rgba(0,200,150,.2)'};
+  el.innerHTML = geoEvents.map(e => `
+    <div class="geo-item" style="background:${rb[e.risk]};border:1px solid ${rb2[e.risk]}">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:${rc[e.risk]}">${e.event}</div>
+        <div style="font-size:11px;color:var(--txt2);margin-top:3px">${e.impact||'No impact note'} &nbsp;·&nbsp; ${e.date}</div>
+      </div>
+      <button class="btn btn-d btn-sm" onclick="deleteGeo('${e.id}')">Remove</button>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════
+// ANALYTICS
+// ══════════════════════════════════════
+function renderAnalytics() {
+  const s = stats();
+
+  // Streaks
+  document.getElementById('ana-stats').innerHTML = `
+    <div class="sc b"><div class="sl">Avg Win $</div><div class="sv p">$${s.avgW}</div><div class="ss">Per winning trade</div></div>
+    <div class="sc r"><div class="sl">Avg Loss $</div><div class="sv n">$${s.avgL}</div><div class="ss">Per losing trade</div></div>
+    <div class="sc"><div class="sl">Best Win Streak</div><div class="sv p">${s.maxW} <span style="font-size:14px">W</span></div><div class="ss">Consecutive wins</div></div>
+    <div class="sc"><div class="sl">Worst Loss Streak</div><div class="sv n">${s.maxL} <span style="font-size:14px">L</span></div><div class="ss">Consecutive losses</div></div>
+    <div class="sc"><div class="sl">Total Gross Profit</div><div class="sv p">$${fn(s.grossP)}</div><div class="ss">Sum of winning trades</div></div>
+    <div class="sc"><div class="sl">Total Gross Loss</div><div class="sv n">$${fn(s.grossL)}</div><div class="ss">Sum of losing trades</div></div>
+  `;
+
+  buildMonthChart();
+  buildSessionChart();
+  buildStratBreakdown();
+  buildStreakDisplay(s);
+}
+
+function buildMonthChart() {
+  const ctx = document.getElementById('monthChart').getContext('2d');
+  if (monthChart) monthChart.destroy();
+  const map = {};
+  trades.forEach(t => {
+    const key = t.date.slice(0,7);
+    if (!map[key]) map[key] = 0;
+    map[key] += t.pnl;
+  });
+  const sorted = Object.entries(map).sort((a,b) => a[0].localeCompare(b[0]));
+  const labels = sorted.map(e => e[0]);
+  const data = sorted.map(e => +e[1].toFixed(2));
+  monthChart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ data, backgroundColor: data.map(v => v>=0?'rgba(0,200,150,.7)':'rgba(240,64,96,.7)'), borderColor: data.map(v => v>=0?'#00c896':'#f04060'), borderWidth:1, borderRadius:4 }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c=>`$${fn(c.raw)}` }}},
+      scales:{ x:{ ticks:{color:'#3d5060',font:{size:10}}, grid:{color:'#1c2b3a'}}, y:{ ticks:{color:'#3d5060', callback: v=>'$'+fn(v)}, grid:{color:'#1c2b3a'}}}}
+  });
+}
+
+function buildSessionChart() {
+  const ctx = document.getElementById('sessionChart').getContext('2d');
+  if (sessChart) sessChart.destroy();
+  const sessions = ['Asian','London','New York','London+NY Overlap','Sydney'];
+  const data = sessions.map(s => trades.filter(t => t.sess === s).reduce((acc,t) => acc+t.pnl, 0));
+  sessChart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: sessions.map(s => s.split(' ')[0]), datasets:[{ data, backgroundColor: data.map(v => v>=0?'rgba(0,200,150,.7)':'rgba(240,64,96,.7)'), borderRadius:4 }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c=>`$${fn(c.raw)}` }}},
+      scales:{ x:{ ticks:{color:'#3d5060'}, grid:{color:'#1c2b3a'}}, y:{ ticks:{color:'#3d5060', callback: v=>'$'+fn(v)}, grid:{color:'#1c2b3a'}}}}
+  });
+}
+
+function buildStratBreakdown() {
+  const el = document.getElementById('strat-breakdown');
+  const map = {};
+  trades.forEach(t => {
+    if (!map[t.strat]) map[t.strat] = { pnl:0, count:0, wins:0 };
+    map[t.strat].pnl += t.pnl;
+    map[t.strat].count++;
+    if (t.result === 'Win') map[t.strat].wins++;
+  });
+  const strats = Object.entries(map).sort((a,b) => b[1].pnl - a[1].pnl);
+  if (!strats.length) { el.innerHTML='<p style="color:var(--txt3);font-size:13px">No trades yet</p>'; return; }
+  el.innerHTML = strats.map(([strat, d]) => {
+    const wr = (d.wins/d.count*100).toFixed(0);
+    const p = d.pnl >= 0;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-size:12px;color:var(--txt1)">${strat}</div>
+      <div style="font-size:11px;color:var(--txt3)">${d.count} trades · ${wr}% WR</div></div>
+      <span style="font-family:var(--fm);font-size:13px;color:${p?'var(--green)':'var(--red)'}">${p?'+':''}$${fn(d.pnl)}</span>
+    </div>`;
+  }).join('');
+}
+
+function buildStreakDisplay(s) {
+  const el = document.getElementById('streak-display');
+  let curStreak = 0, curType = null;
+  if (trades.length > 0) {
+    const t = trades[0];
+    if (t.result === 'Win') { curType = 'Win'; }
+    else if (t.result === 'Loss') { curType = 'Loss'; }
+    for (const tr of trades) {
+      if (tr.result === curType) curStreak++;
+      else break;
+    }
+  }
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div style="background:var(--green-dim);border:1px solid rgba(0,200,150,.2);border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:10px;letter-spacing:1px;color:var(--green);margin-bottom:4px">MAX WIN STREAK</div>
+        <div style="font-family:var(--fm);font-size:32px;color:var(--green)">${s.maxW}</div>
+      </div>
+      <div style="background:var(--red-dim);border:1px solid rgba(240,64,96,.2);border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:10px;letter-spacing:1px;color:var(--red);margin-bottom:4px">MAX LOSS STREAK</div>
+        <div style="font-family:var(--fm);font-size:32px;color:var(--red)">${s.maxL}</div>
+      </div>
+    </div>
+    ${curType ? `<div style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:14px;text-align:center">
+      <div style="font-size:11px;color:var(--txt2);margin-bottom:4px">CURRENT STREAK</div>
+      <div style="font-family:var(--fm);font-size:28px;color:${curType==='Win'?'var(--green)':'var(--red)'}">
+        ${curStreak} ${curType === 'Win' ? '🔥' : '❄️'} ${curType.toUpperCase()}
+      </div>
+    </div>` : '<p style="color:var(--txt3);font-size:13px">No trades yet</p>'}
+  `;
+}
+
+// ══════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════
+function fn(n) {
+  if (n === undefined || n === null || isNaN(n)) return '0.00';
+  return Math.abs(n).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+function toast(msg, type = 'ok') {
+  document.querySelectorAll('.toast').forEach(e => e.remove());
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${type === 'ok' ? '✅' : '❌'}</span> ${msg}`;
+  document.body.appendChild(el);
+  setTimeout(() => el.style.opacity = '0', 2500);
+  setTimeout(() => el.remove(), 2800);
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.mo').forEach(mo => {
+  mo.addEventListener('click', e => { if (e.target === mo) mo.classList.remove('show'); });
+});
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  renderDash();
+  renderGeo();
+  calcAll();
+  if (!settings.capital) setTimeout(() => openSetup(), 600);
+});
+</script>
+</body>
+</html>
